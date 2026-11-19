@@ -1,0 +1,54 @@
+{
+  "results": [
+    {
+      "check_id": "scripts.workshop-path-traversal",
+      "path": "review_examples\\attachments.py",
+      "start": {
+        "line": 38,
+        "col": 14,
+        "offset": 1516
+      },
+      "end": {
+        "line": 38,
+        "col": 40,
+        "offset": 1542
+      },
+      "extra": {
+        "message": "Unchecked attachment path; resolve the path and enforce directory containment.",
+        "metadata": {
+          "cwe": "CWE-22"
+        },
+        "severity": "ERROR",
+        "fingerprint": "requires login",
+        "lines": "requires login",
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    },
+    {
+      "check_id": "scripts.workshop-unsafe-deserialization",
+      "path": "review_examples\\file_imports.py",
+      "start": {
+        "line": 11,
+        "col": 20,
+        "offset": 333
+      },
+      "end": {
+        "line": 11,
+        "col": 42,
+        "offset": 355
+      },
+      "extra": {
+        "message": "Do not deserialize untrusted pickle data; use a data format and validate its schema.",
+        "metadata": {
+          "cwe": "CWE-502"
+        },
+        "severity": "ERROR",
+        "fingerprint": "requires login",
+        "lines": "requires login",
+        "validation_state": "NO_VALIDATOR",
+        "engine_kind": "OSS"
+      }
+    }
+  ]
+}

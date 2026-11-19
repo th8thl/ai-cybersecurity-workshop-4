@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+*.sqlite3
+results/
+.tools/
+
+# Private ticket attachments
+uploads/
+.rag-index/

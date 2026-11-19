@@ -1,0 +1,68 @@
+[
+  {
+    "slug": "account-recovery",
+    "title": "Account access support",
+    "file": "clean/account-recovery.pdf",
+    "group": "clean",
+    "approved": true,
+    "visibility": "shared"
+  },
+  {
+    "slug": "wireless-access",
+    "title": "Wireless connection support",
+    "file": "clean/wireless-access.pdf",
+    "group": "clean",
+    "approved": true,
+    "visibility": "shared"
+  },
+  {
+    "slug": "printing",
+    "title": "Printing issue support",
+    "file": "clean/printing.pdf",
+    "group": "clean",
+    "approved": true,
+    "visibility": "shared"
+  },
+  {
+    "slug": "study-support",
+    "title": "Academic support requests",
+    "file": "clean/study-support.pdf",
+    "group": "clean",
+    "approved": true,
+    "visibility": "shared"
+  },
+  {
+    "slug": "alice-billing",
+    "title": "Billing statement - Alice Morgan",
+    "file": "clean/alice-billing.pdf",
+    "group": "clean",
+    "approved": true,
+    "visibility": "private",
+    "owner": "alice"
+  },
+  {
+    "slug": "bob-billing",
+    "title": "Billing statement - Bob Chen",
+    "file": "clean/bob-billing.pdf",
+    "group": "clean",
+    "approved": true,
+    "visibility": "private",
+    "owner": "bob"
+  },
+  {
+    "slug": "it-bulletin-2026-17",
+    "title": "Account recovery service bulletin",
+    "file": "poisoned/it-bulletin-2026-17.pdf",
+    "group": "poisoned",
+    "approved": false,
+    "visibility": "shared"
+  },
+  {
+    "slug": "security-awareness-2026-11",
+    "title": "Suspicious instructions in shared files",
+    "file": "poisoned/security-awareness-2026-11.pdf",
+    "group": "poisoned",
+    "approved": true,
+    "visibility": "shared"
+  }
+]
