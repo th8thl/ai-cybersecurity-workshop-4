@@ -2,7 +2,7 @@
 
 This workshop focuses on identifying vulnerabilities and verifying findings. Run every scan on your unchanged starter code. Students compare the supplied vulnerable examples with repaired code and recommend repairs in their report. Implementing fixes is outside the student tasks in this workshop.
 
-**Before you start.** Follow the [Codespaces guide](GITHUB_CODESPACES_SETUP.md) or [macOS and Windows guide](LOCAL_SETUP.md). In VS Code, open the folder in your local copy of the starter repo that contains `manage.py`, `scripts/`, and `review_examples/`. Choose **Terminal → New Terminal** and activate the starter Python environment. Run the commands below there unless the exercise specifies GitHub, Claude Security, or the portal in your browser. Keep the portal running in a second terminal. If you use GitHub Codespaces, your account or course organization needs an available Codespaces allowance or billing.
+**Before you start.** Follow the [Codespaces guide](GITHUB_CODESPACES_SETUP.md) or [macOS and Windows guide](LOCAL_SETUP.md). In VS Code, open the folder in your local copy of the starter repo that contains `manage.py`, `scripts/`, and `review_examples/`. Choose **Terminal → New Terminal** and activate the starter Python environment. Run the commands below there unless the exercise specifies a browser or the Claude Code panel. Keep the portal running in a second terminal. If you use GitHub Codespaces, your account or course organization needs an available Codespaces allowance or billing.
 
 Copy the [report template](REPORT_TEMPLATE.md) into your working folder as `session4-report.md`. Keep that file open in VS Code and fill in the matching section after each exercise. For GitHub and Claude Security, get the classroom repository URL, branch, and commit from your instructor before starting.
 
@@ -11,9 +11,9 @@ Copy the [report template](REPORT_TEMPLATE.md) into your working folder as `sess
 | 1. Map security decisions | Django portal and diagram | Identify where the application checks chat input, ticket permissions and retrieved documents. | “Create a threat-model diagram” |
 | 2. Run static analysis | Bandit and Semgrep | Check which warnings are supported by source evidence. | “Classify findings by CWE” |
 | 3. Review scanner output | Gemini API via Python google-genai | Check whether AI summarizes the two reports accurately. | “Run AI-assisted vulnerability analysis” |
-| 4. Scan a GitHub fork | GitHub CodeQL | Check which known issues CodeQL identifies. | “Evidence validation” |
-| 5. Review code in the terminal | Claude Code /security-review | Verify and score a terminal review. | “Require evidence for findings” |
-| 6. Review a repository scan | Claude Security | Verify and score a repository scan. | “Tool evidence validation” |
+| 4. Scan your GitHub repository | GitHub CodeQL | Check which known issues CodeQL identifies. | “Evidence validation” |
+| 5. Review the SQL injection example | Claude Code extension /security-review | Verify whether Claude identifies the unsafe SQL query. | “Require evidence for findings” |
+| 6. Scan the source in VS Code | Claude Security plugin | Verify and score a repository scan. | “Tool evidence validation” |
 | 7. Review the running portal | Claude Code with Claude in Chrome and Django | Observe ticket approval, sign-out behavior, and deployment warnings. | “Evidence validation” · “Risk communication” |
 | 8. Compare three reviews | Gemini API via Python google-genai and both Claude reports | Count confirmed findings, misses and false alarms on the same source. | “Compare models or prompts” · “Measure false positives and false negatives” |
 | 9. Compare guardrails | NeMo Guardrails | Count which excerpts pass with the rail off and on. | “Compare guardrail strategies” |
@@ -58,52 +58,100 @@ Use [the scanner results guide](READING_SCAN_RESULTS.md) to interpret the files 
 
 **Turn in:** The model ID, which pair of reports you used, one verified summary with its matching rule and location, and any unsupported claim you found.
 
-## 4. Scan your GitHub fork with CodeQL
+## 4. Scan your GitHub repository with CodeQL
 
-**Software:** Browser, public starter repository fork, and GitHub Actions enabled on that fork.
+**Software:** Browser, public workshop repository, and GitHub Actions enabled in that repository.
 
-**Accounts and licenses:** A GitHub account with admin access to your own public fork. CodeQL is available on public repositories without buying GitHub Code Security. [GitHub CodeQL setup](https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/configure-code-scanning/configure-code-scanning)
+**Accounts and licenses:** A GitHub account with admin access to your public workshop repository. CodeQL is available on public repositories without buying GitHub Code Security. [GitHub CodeQL setup](https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/configure-code-scanning/configure-code-scanning)
 
-1. **Create your own copy of the starter code on GitHub.** In your browser, sign in to your personal GitHub account and open the course’s public Session 4 starter repository. Click **Fork**. On the **Create a new fork** page, select your own GitHub username under **Owner**, then click **Create fork**. GitHub should open the copy under your account. Check that the URL starts with `https://github.com/YOUR-USERNAME/` and that the file list contains `manage.py` and `review_examples/`. Save this repository URL. If you already have your own fork of the course starter, open it and make the same checks. Then open **Actions** in your copy and enable workflows if GitHub prompts you.
-2. **In your fork:** Open **Settings → Advanced Security** under **Security and quality**. Under **Code Security**, select **CodeQL analysis → Set up → Default**. Confirm that Python appears in the configuration and enable CodeQL. If the setting is missing, check that you are in the public fork you own and that Actions is enabled.
-3. **GitHub:** Open **Actions** and find the CodeQL run. Record the scanned branch and commit. Wait for it to finish. Once it succeeds, open **Security → Code scanning**. For any alert about the two reviewed files, open it and check the rule, path, and highlighted lines against your local copy. Record zero relevant alerts only after a successful scan. If the run fails, record the failed step and workflow link.
+1. **In your web browser:** Open **github.com** and select the workshop repository you created from the Session 4 template. On that repository page, click the **Actions** tab above the file list, alongside **Code** and **Pull requests**. If GitHub displays a button to enable workflows, click it. Otherwise, continue to **Settings**.
+2. **Enable CodeQL.** Open **Settings → Advanced Security → CodeQL analysis → Set up → Default**. Check that Python is selected and enable the scan.
+3. **In the same GitHub repository, in your browser:** Open **Actions** and click the CodeQL run to follow its progress. The scan can take **3–5 minutes**; the first run can take longer. Record the scanned branch and commit. Once it succeeds, return to your repository’s main page. Under the repository name, click **Security and quality**. If it is hidden, open the overflow dropdown in that tab row. In the left sidebar, click **Code scanning** to see the results. For any alert about the two reviewed files, open it and check the rule, path, and highlighted lines against your local copy. Record zero relevant alerts only after a successful scan. If the run fails, record the failed step and workflow link.
 
-**Turn in:** Your fork URL, the workflow or alert link, the scanned commit, and a row for each file showing whether CodeQL flagged it. Use the same two files and findings as Exercise 2 when comparing scanners.
+**Turn in:** Your repository URL, the workflow or alert link, the scanned commit, and a row for each file showing whether CodeQL flagged it. Use the same two files and findings as Exercise 2 when comparing scanners.
 
 [GitHub CodeQL setup guide](https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/configure-code-scanning/configure-code-scanning)
 
-## 5. Review code with Claude Code /security-review
+## 5. Have Claude identify SQL injection
 
-**Software:** Claude Code CLI installed and signed in, Git, and a terminal in your local copy of the starter repo.
+**What and why:** Create a small Python example and ask Claude to review its SQL query. SQL injection occurs when input can change a database command. Here the title is inserted directly into SQL. Students inspect the code and Claude's explanation.
 
-**Accounts and licenses:** For a live run, use a Claude plan that includes Claude Code or an Anthropic Console account with pay-as-you-go API billing. If using the in-class saved report, no Claude account is needed for that review. [Claude Code security review access](https://support.anthropic.com/en/articles/11932705-automated-security-reviews-in-claude-code/)
+**Software and access:** Codespaces VS Code and its signed-in Claude Code extension with available account usage. This example does not need to be run or connected to the portal.
 
-1. **Open a terminal in your local copy of the starter repo.** Use PowerShell on Windows, Terminal on macOS, or the integrated terminal in VS Code. In VS Code, open the starter repo folder and choose **Terminal → New Terminal**. The commands below run in that terminal.
-   
-   ```text
-   claude
-   ```
+1. **Create the file in Codespaces VS Code.** In Explorer, expand starter and then review_examples. Right-click review_examples, select New File, and name it sql_injection_demo.py. Paste the entire code below into that file and save it. The supplied .gitignore excludes this student-created file from Git submissions.
 
-   Launch Claude from the starter folder containing review_examples/. Expect an interactive Claude Code prompt.
+```python
+import sqlite3
 
-2. **Start the review.** At the Claude Code prompt, type `/security-review` and press Enter. Read the response in the same terminal. Look for a file path, a line number or code excerpt, and an explanation of the suspected weakness. This command can focus on pending branch changes. If it reports an empty diff or does not cover both files below, use the instructor's saved Claude Code report from the same commit. Use that report also if you cannot launch or sign in to Claude Code. Record which report you used and the files it covers.
 
-3. **Verify one claim.** Open the cited line in `review_examples/file_imports.py` or `review_examples/attachments.py` in your editor. For the importer, check whether the cited code validates uploaded data before parsing it. For the downloader, check whether the cited code confines access to the current ticket's attachment folder and record. Quote the lines that support or contradict the claim. If the report has no claims about either file, record that and state whether the report establishes that both files were reviewed.
+def find_tickets(title):
+    connection = sqlite3.connect(":memory:")
+    try:
+        connection.execute(
+            "CREATE TABLE tickets (id INTEGER, title TEXT)"
+        )
+        connection.execute(
+            "INSERT INTO tickets VALUES (?, ?)",
+            (1, "Registration help"),
+        )
+        query = f"SELECT id, title FROM tickets WHERE title = '{title}'"
+        return connection.execute(query).fetchall()
+    finally:
+        connection.close()
+```
 
-4. **Score and save your results.** Use the instructor key to count confirmed issues, missed issues and false alarms. Count a known issue as missed only when the report covers its file. Mark an omitted file as **not reviewed**. Save the report text and commit hash, then fill in the Claude Code row in the [report template](REPORT_TEMPLATE.md). Keep the report for Exercise 8.
+2. **Run the security review.** In the Codespaces terminal, from starter, make the ignored example visible in the working-tree diff:
 
-## 6. Generate and verify a Claude Security report
+```bash
+git add -f -N review_examples/sql_injection_demo.py
+git diff -- review_examples/sql_injection_demo.py
+```
 
-**Software:** Browser, published GitHub starter repository, and a GitHub account connected to Claude.
+Expect the full Python example. This creates an intent-to-add entry without a commit. In the Claude Code panel, submit:
 
-**Accounts and licenses:** Claude Enterprise with a premium seat, usage billing enabled, and permission to create projects. The Enterprise owner enables Claude Security and a GitHub owner grants the Claude GitHub App access to the course repository. [Claude Security requirements](https://support.claude.com/en/articles/14661296-use-claude-security)
+```text
+/security-review Review the uncommitted working-tree change in starter/review_examples/sql_injection_demo.py. Use git diff -- starter/review_examples/sql_injection_demo.py to inspect it. Identify security vulnerabilities; do not edit files.
+```
 
-1. **Choose your starter repository.** Open your own GitHub copy of the course starter. Use the same unchanged starter code as the other reviews.
-2. **Create a project to start the scan.** Go to [claude.ai/security](https://claude.ai/security) in your browser and sign in to the Enterprise workspace your instructor specifies. Click **New project**, enter a name such as **Session 4 — your name**, and add the course GitHub repository. Select the branch containing the unchanged starter code. Set the folder scope to `review_examples` and include the repository for findings. Click **Create project**. Claude Security starts the first scan automatically. Open **Activity** to see the run and wait until it completes. If **New project** is missing or the repository is unavailable, ask your instructor to check your project permissions and the GitHub App's access. Record the scan status and the scanned commit if shown. A pending or failed scan has no score.
-3. **Read the findings.** On the project page, open **Findings** and look for findings citing `review_examples/file_imports.py` or `review_examples/attachments.py`. Open one and compare its **Evidence** path and line range with the same lines in your local copy of the starter repo. Record the finding title, severity, CWE if shown, and the source lines that support or contradict it. If the completed run has no findings for these files, record that and check the scan scope before counting a miss.
-4. **Save your report.** Fill in the **Claude Security** row in the [report template](REPORT_TEMPLATE.md) with your scan link, scanned revision, and counts of confirmed findings, misses, and false alarms. Keep the evidence from step 3 for Exercise 8.
+If your workspace root is starter, use review_examples/sql_injection_demo.py in the review command instead. Confirm the report covers this file before scoring. If it reviews only documentation or reports an empty branch diff, the example has not been reviewed.
 
-[Claude Security documentation](https://support.claude.com/en/articles/14661296-use-claude-security)
+3. **Verify the finding in VS Code.** Look for CWE-89, SQL Injection. Compare the f-string query with the INSERT statement: the INSERT uses a placeholder and a separate value, while the SELECT inserts title into the SQL text. Claude should explain why that difference matters. Record its finding or a miss if it reviewed the file without identifying the issue.
+4. **Save the evidence and clear the intent-to-add entry.** Run `git reset -- review_examples/sql_injection_demo.py` from starter after saving the report. The file remains on disk and returns to being ignored.  Copy Claude's finding and the vulnerable query into your report. Explain the weakness in one sentence. Keep this result separate from the original importer/downloader comparison. Students identify and verify the issue without running it or implementing a repair.
+
+## If /security-review reports unknown revision origin/HEAD
+
+In Codespaces VS Code, select **Terminal → New Terminal**. From the workshop repository, run:
+
+```bash
+git fetch origin
+git remote set-head origin --auto
+git symbolic-ref refs/remotes/origin/HEAD
+```
+
+The last command should print `refs/remotes/origin/main` if main is the default branch. Return to the Claude Code panel and retry `/security-review`.
+
+If automatic detection fails, and your GitHub repository's default branch is main, run:
+
+```bash
+git remote set-head origin main
+git symbolic-ref refs/remotes/origin/HEAD
+```
+
+Expect `refs/remotes/origin/main`. If your repository uses another default branch, replace main with that branch name. A completed review with no branch changes is a separate outcome from this Git error.
+
+## 6. Scan the source with the Claude Security plugin
+
+**Software:** Claude Code extension in your Codespaces VS Code workspace and the official Claude Security plugin.
+
+**Accounts and licenses:** Claude Code access with available subscription usage or API billing. The plugin uses the model and usage available in your Claude Code session. A managed organization may need to allow plugin installation. This exercise runs through the plugin in your session.
+
+1. **Install the plugin in the Claude Code panel.** In the message box, enter `/plugin install claude-security@claude-plugins-official`, then `/reload-plugins`. If the marketplace is missing, enter `/plugin marketplace add anthropics/claude-plugins-official` and retry installation. If `/claude-security:scan` already appears in the command list, the plugin is installed.
+2. **Request a scoped scan.** In the same panel, enter: “Use the Claude Security plugin to scan starter/review_examples/file_imports.py and starter/review_examples/attachments.py in this Codespaces repository. Treat both as source to review. Identify and verify weaknesses. Save the findings report.” If your workspace root is starter, use review_examples/ as the path instead. The plugin should identify the target and describe the effort and usage cost before starting. Confirm after checking that the two example files are the target.
+3. **Observe the scan.** Watch the stage updates in the Claude Code panel. Wait for the final report path. If the command fails, record the error. A failed run has no findings score.
+4. **Read the generated report.** In the VS Code Explorer, open the new CLAUDE-SECURITY-<timestamp> folder and its CLAUDE-SECURITY-RESULTS.md file. Look for each finding’s source location, severity, confidence, explanation, and recommendation. Check the cited lines in the starter source. Record whether they support the claim.
+5. **Save your comparison.** Add the report path, files covered, model if shown, and confirmed findings, misses and false alarms to your report. Keep this generated report for Exercise 8.
+
+[Official Claude Security plugin documentation](https://github.com/anthropics/claude-plugins-official/blob/main/plugins/claude-security/README.md)
 
 ## 7. Review the running portal with Claude Code
 
@@ -147,11 +195,11 @@ Use [the scanner results guide](READING_SCAN_RESULTS.md) to interpret the files 
 
 **Software:** Markdown editor, Git, browser, and the completed report and evidence from the preceding exercises.
 
-**Accounts and licenses:** A GitHub account with write access to your submission fork. No paid plan is required to commit the Markdown report and push it to that public fork.
+**Accounts and licenses:** A GitHub account with write access to your workshop repository. No paid plan is required to commit the Markdown report and push it to that public repository.
 
 1. **VS Code:** In `session4-report.md`, add the repository and commit, your diagram, scanner results, Gemini scanner-output check, three source-review scores, runtime observations from Exercise 7, and NeMo outcomes. For each confirmed issue, include the file and line, CWE, impact, repair, and the test or scan result that supports the repair.
 2. **Write the priority:** Choose which issue to fix first. Give the reason in one sentence and name the check you would rerun after the fix. For report confidence, give one sentence each on how prompt injection, poisoned retrieved documents, a poisoned model or fine-tune, and a contaminated benchmark could affect the exercise results.
-3. **Terminal in your local starter repo:** Run `git status --short` and check that `session4-report.md` is the intended submission. Stage it with `git add session4-report.md`, review it with `git diff --cached -- session4-report.md`, and confirm the staged files list from `git diff --cached --name-only` contains only your report. Commit with `git commit -m "Add Session 4 security report"`. Run `git remote -v` and identify the remote whose push URL points to your fork. Run `git push <fork-remote> HEAD:<submission-branch>`, replacing both placeholders with that remote name and the branch your instructor provided. Include report excerpts without credentials or private account information.
-4. **GitHub in your browser:** Open your fork, select the branch you pushed, and open `session4-report.md`. Check that the tables render and your evidence links open.
+3. **Terminal in your local starter repo:** Run `git status --short` and check that `session4-report.md` is the intended submission. Stage it with `git add session4-report.md`, review it with `git diff --cached -- session4-report.md`, and confirm the staged files list from `git diff --cached --name-only` contains only your report. Commit with `git commit -m "Add Session 4 security report"`. Run `git remote -v` and identify the remote whose push URL points to your workshop repository. Run `git push <repository-remote> HEAD:<submission-branch>`, replacing both placeholders with that remote name and the branch your instructor provided. Include report excerpts without credentials or private account information.
+4. **GitHub in your browser:** Open your workshop repository, select the branch you pushed, and open `session4-report.md`. Check that the tables render and your evidence links open.
 
 **Turn in:** The GitHub link to the rendered report on your submission branch.

@@ -1,10 +1,10 @@
 # GitHub Codespaces setup
 
-Publish this workshop folder as the Codespaces repository root. Its .devcontainer starts the workshop environment. The instructor also supplies a public starter-only repository for the CodeQL exercise.
+Publish this workshop folder as the Codespaces repository root. Its .devcontainer starts the workshop environment. Students use their own repository created from the Session 4 template for both Codespaces and CodeQL.
 
 ## Before opening the Codespace
 
-- Use a GitHub account with Codespaces allowance or billing. Get the workshop repository URL for Codespaces and the separate public starter repository URL for your own CodeQL fork.
+- Use a GitHub account with Codespaces allowance or billing. Open your own repository created from the Session 4 template.
 - Use the [software and account checklist](LOCAL_SETUP.md#before-class) for Gemini, Claude Code, Claude Security, and Claude in Chrome. Codespaces setup installs the Python packages and Ollama. Sign in to the external services separately.
 - For Exercise 7, open the private forwarded portal URL in desktop Chrome and run Claude Code locally on the same computer as Chrome. Use the Codespaces terminal for Django commands, including `python manage.py check --deploy`.
 

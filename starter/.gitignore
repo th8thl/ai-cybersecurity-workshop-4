@@ -38,3 +38,6 @@ uploads/
 
 # Local vector index contains private reference metadata.
 .rag-index/
+
+# Student-created SQL injection review example
+/review_examples/sql_injection_demo.py
