@@ -7,6 +7,8 @@ import secrets
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from django.utils.crypto import salted_hmac
+from django.contrib.auth import get_user_model
 from chatbot.models import MCPAccessGrant
 
 CLIENT_ID = 'support_portal_assistant'
@@ -104,10 +106,46 @@ def revoke_grants(user):
     return MCPAccessGrant.objects.filter(user=user,client_id=CLIENT_ID,revoked_at__isnull=True).update(revoked_at=timezone.now())
 
 
+def automatic_access_token(user):
+    """Reuse the user's workshop grant across signed-in browser sessions."""
+    with transaction.atomic():
+        get_user_model().objects.select_for_update().get(pk=user.pk)
+        grant = MCPAccessGrant.objects.filter(
+            user=user, client_id=CLIENT_ID, revoked_at__isnull=True,
+        ).first()
+        if grant is None or grant.audience != AUDIENCE or grant.expires_at <= timezone.now():
+            grant, _ = issue_grant(user, PERMISSIONS)
+        token = "mcp_" + salted_hmac("session4-assistant-access", str(grant.pk)).hexdigest()
+        grant.token_hash = token_digest(token)
+        grant.scopes = sorted(PERMISSIONS)
+        grant.save(update_fields=["token_hash", "scopes"])
+        return token
+
+
 class MCPAuthorizationMiddleware:
     def __init__(self,get_response):
         self.get_response = get_response
 
-    def __call__(self,request):
-        with use_access_token(request.COOKIES.get(COOKIE_NAME)):
-            return self.get_response(request)
+    def __call__(self, request):
+        token = request.COOKIES.get(COOKIE_NAME)
+        automatic = getattr(settings, "ASSISTANT_AUTO_ACCESS", True)
+        issued = False
+        if automatic and request.user.is_authenticated and request.user.is_active:
+            try:
+                grant = validate_token(token, expected_user_id=request.user.pk)
+                if not set(PERMISSIONS).issubset(grant.scopes):
+                    raise MCPAuthorizationError("Refresh workshop assistant access.")
+            except MCPAuthorizationError:
+                token = automatic_access_token(request.user)
+                issued = True
+        with use_access_token(token):
+            response = self.get_response(request)
+        if automatic and issued and request.user.is_authenticated:
+            response.set_cookie(
+                COOKIE_NAME, token, max_age=1800, path="/",
+                httponly=True, secure=request.is_secure(), samesite="Lax",
+            )
+            response["Cache-Control"] = "no-store"
+        elif automatic and not request.user.is_authenticated and request.COOKIES.get(COOKIE_NAME):
+            response.delete_cookie(COOKIE_NAME, path="/")
+        return response

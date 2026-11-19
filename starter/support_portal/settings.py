@@ -149,3 +149,6 @@ MEDIA_ROOT = BASE_DIR / "uploads"
 TICKET_MAX_IMPORT_BYTES = 64 * 1024
 TICKET_MAX_ATTACHMENT_BYTES = 2 * 1024 * 1024
 
+
+# Session 4 starts assistant access automatically for signed-in workshop users.
+ASSISTANT_AUTO_ACCESS = True

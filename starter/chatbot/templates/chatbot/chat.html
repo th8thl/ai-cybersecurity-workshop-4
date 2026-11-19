@@ -33,10 +33,12 @@
 </section>
 <aside class="panel debug-panel" id="debug-panel" aria-label="Debug">
 <div class="debug-head"><h2>Debug</h2><span class="muted">NeMo {% if nemo_enabled %}on · {{ nemo_mode }}{% else %}off{% endif %} · MCP</span></div>
-<section class="debug-section" id="assistant-access"><h3>Authorization</h3>
+<section class="debug-section" id="assistant-access"><h3>Assistant access</h3>
+{% if automatic_access %}<p>Available automatically while signed in. Ticket ownership and document visibility checks apply.</p>
+{% else %}
 {% if authorization %}<p>Authorized until {{ authorization.expires_at|date:"H:i:s T" }}.</p><p class="muted">{{ permission_labels|join:", " }}</p>{% else %}<p>{{ authorization_error }}</p>{% endif %}
 <a href="{% url 'assistant_authorization' %}">{% if authorization %}Manage assistant access{% else %}Authorize assistant{% endif %}</a>
-</section>
+{% endif %}</section>
 <section class="debug-section" id="ticket-list"><div class="section-heading"><h3>Your tickets</h3><a href="{% url 'ticket_list' %}">All tickets</a></div>
 {% for ticket in tickets %}<a class="ticket-link" href="{% url 'ticket_detail' ticket.id %}"><strong>{{ ticket.title }}</strong><span class="ticket-meta"><span>#{{ ticket.id }}</span><span class="status {{ ticket.status }}">{{ ticket.status|title }}</span></span></a>{% empty %}<p class="muted">No tickets.</p>{% endfor %}
 </section>

@@ -13,7 +13,7 @@ from security.redaction import sanitize
 
 
 @override_settings(PASSWORD_HASHERS=['django.contrib.auth.hashers.MD5PasswordHasher'],
-                   MCP_TRANSPORT='inprocess-test',NEMO_CHECKS=False)
+                   MCP_TRANSPORT='inprocess-test',NEMO_CHECKS=False, ASSISTANT_AUTO_ACCESS=False)
 class AuthorizationTests(TestCase):
     def setUp(self):
         self.alice=get_user_model().objects.create_user('consent-alice')

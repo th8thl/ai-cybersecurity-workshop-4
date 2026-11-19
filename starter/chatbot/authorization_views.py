@@ -1,4 +1,5 @@
 """Explicit user consent, token delivery and revocation for the local MCP client."""
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
@@ -13,6 +14,8 @@ from .forms import AssistantAuthorizationForm
 @never_cache
 @login_required
 def authorize_assistant(request):
+    if settings.ASSISTANT_AUTO_ACCESS:
+        return redirect("assistant")
     grant, error = authorization_status(request.user)
     form = AssistantAuthorizationForm(initial={'permissions':grant.scopes if grant else ['tickets:read']})
     token = None

@@ -40,6 +40,7 @@ def context(request):
         "nemo_enabled": settings.NEMO_CHECKS,
         "nemo_mode": settings.NEMO_POLICY_MODE,
         "authorization":grant, "authorization_error":authorization_error,
+        "automatic_access": settings.ASSISTANT_AUTO_ACCESS,
         "permission_labels":[PERMISSIONS[p] for p in grant.scopes] if grant else [],
         "form_token": str(uuid4()),
         "tickets": Ticket.objects.filter(owner=request.user).order_by("-pk")[:3],
