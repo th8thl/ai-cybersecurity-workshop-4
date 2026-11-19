@@ -1,6 +1,6 @@
 # Session 4 exercises
 
-This workshop focuses on identifying vulnerabilities and verifying findings. Run every scan on your unchanged starter code. Students compare the supplied vulnerable examples with repaired code and recommend repairs in their report. Implementing fixes is outside the student tasks in this workshop.
+This workshop focuses on identifying vulnerabilities and verifying findings. Use unchanged starter code for the comparisons. Exercise 5 temporarily changes the live ticket creation query and then restores it. Students compare the supplied vulnerable examples with repaired code and recommend repairs in their report. Implementing fixes is outside the student tasks in this workshop.
 
 **Before you start.** Follow the [Codespaces guide](GITHUB_CODESPACES_SETUP.md) or [macOS and Windows guide](LOCAL_SETUP.md). In VS Code, open the folder in your local copy of the starter repo that contains `manage.py`, `scripts/`, and `review_examples/`. Choose **Terminal → New Terminal** and activate the starter Python environment. Run the commands below there unless the exercise specifies a browser or the Claude Code panel. Keep the portal running in a second terminal. If you use GitHub Codespaces, your account or course organization needs an available Codespaces allowance or billing.
 
@@ -12,7 +12,7 @@ Copy the [report template](REPORT_TEMPLATE.md) into your working folder as `sess
 | 2. Run static analysis | Bandit and Semgrep | Check which warnings are supported by source evidence. | “Classify findings by CWE” |
 | 3. Review scanner output | Gemini API via Python google-genai | Check whether AI summarizes the two reports accurately. | “Run AI-assisted vulnerability analysis” |
 | 4. Scan your GitHub repository | GitHub CodeQL | Check which known issues CodeQL identifies. | “Evidence validation” |
-| 5. Review the SQL injection example | Claude Code extension /security-review | Verify whether Claude identifies the unsafe SQL query. | “Require evidence for findings” |
+| 5. Review SQL injection in Request summary | Claude Code extension /security-review | Verify whether Claude identifies the unsafe query used by the live ticket form. | “Require evidence for findings” |
 | 6. Scan the source in VS Code | Claude Security plugin | Verify and score a repository scan. | “Tool evidence validation” |
 | 7. Review the running portal | Claude Code with Claude in Chrome and Django | Observe ticket approval, sign-out behavior, and deployment warnings. | “Evidence validation” · “Risk communication” |
 | 8. Compare three reviews | Gemini API via Python google-genai and both Claude reports | Count confirmed findings, misses and false alarms on the same source. | “Compare models or prompts” · “Measure false positives and false negatives” |
@@ -72,51 +72,56 @@ Use [the scanner results guide](READING_SCAN_RESULTS.md) to interpret the files 
 
 [GitHub CodeQL setup guide](https://docs.github.com/en/code-security/how-tos/find-and-fix-code-vulnerabilities/configure-code-scanning/configure-code-scanning)
 
-## 5. Have Claude identify SQL injection
+## 5. Have Claude review SQL injection in Request summary
 
-**What and why:** Create a small Python example and ask Claude to review its SQL query. SQL injection occurs when input can change a database command. Here the title is inserted directly into SQL. Students inspect the code and Claude's explanation.
+**What and why:** Change the database operation used by New ticket → Request summary. The current Django ORM call safely passes values to the database. The replacement inserts the submitted title directly into SQL, introducing CWE-89, SQL Injection. This request reaches real ticket storage, so the reviewer can trace its impact through the running application.
 
-**Software and access:** Codespaces VS Code and its signed-in Claude Code extension with available account usage. This example does not need to be run or connected to the portal.
+**Software and access:** Codespaces VS Code, the running Django portal, and the signed-in Claude Code extension with available usage. Work only in your workshop starter copy. The instructions modify an existing tracked file; no new file, branch, or commit is required.
 
-1. **Create the file in Codespaces VS Code.** In Explorer, expand starter and then review_examples. Right-click review_examples, select New File, and name it sql_injection_demo.py. Paste the entire code below into that file and save it. The supplied .gitignore excludes this student-created file from Git submissions.
+1. **Open the existing file.** In Codespaces VS Code Explorer, expand starter → tickets and open local_adapter.py. Find the create_ticket block below. The Request summary form sends its value to arguments["title"] through views.ticket_create and ticket_service.execute.
 
 ```python
-import sqlite3
-
-
-def find_tickets(title):
-    connection = sqlite3.connect(":memory:")
-    try:
-        connection.execute(
-            "CREATE TABLE tickets (id INTEGER, title TEXT)"
-        )
-        connection.execute(
-            "INSERT INTO tickets VALUES (?, ?)",
-            (1, "Registration help"),
-        )
-        query = f"SELECT id, title FROM tickets WHERE title = '{title}'"
-        return connection.execute(query).fetchall()
-    finally:
-        connection.close()
+    if tool == "create_ticket":
+        ticket = Ticket.objects.create(owner=actor, title=arguments["title"])
 ```
 
-2. **Run the security review.** In the Codespaces terminal, from starter, make the ignored example visible in the working-tree diff:
+2. **Replace only those two lines.** Paste the block below in their place and save. Keep the following elif block and the rest of the file as they are. The login, owner assignment, and ticket approval code remain present; the title is the value deliberately placed inside SQL.
+
+```python
+    if tool == "create_ticket":
+        from django.db import connection
+
+        title = arguments["title"]
+        query = (
+            "INSERT INTO tickets_ticket (owner_id, title, status) "
+            f"VALUES (%s, '{title}', 'open')"
+        )
+        with connection.cursor() as cursor:
+            cursor.execute(query, [actor.pk])
+            ticket_id = cursor.lastrowid
+        ticket = Ticket.objects.get(pk=ticket_id)
+```
+
+3. **Check the normal path.** In the running portal, open Tickets → New ticket. Enter Registration help in Request summary and submit. Expect a new open ticket under your demo account. If it fails, inspect the Codespaces server terminal before continuing.
+4. **Confirm the review can see the change.** In a Codespaces terminal, from starter, run:
 
 ```bash
-git add -f -N review_examples/sql_injection_demo.py
-git diff -- review_examples/sql_injection_demo.py
+git diff -- tickets/local_adapter.py
 ```
 
-Expect the full Python example. This creates an intent-to-add entry without a commit. In the Claude Code panel, submit:
+Expect the diff to show Ticket.objects.create replaced by the raw INSERT. No output means the edit was not saved in this repository.
+
+5. **Run the command in the Claude Code panel.** Paste the following and submit:
 
 ```text
-/security-review Review the uncommitted working-tree change in starter/review_examples/sql_injection_demo.py. Use git diff -- starter/review_examples/sql_injection_demo.py to inspect it. Identify security vulnerabilities; do not edit files.
+/security-review Review the uncommitted change in starter/tickets/local_adapter.py using git diff -- starter/tickets/local_adapter.py. Trace Request summary from the POST handler in starter/tickets/views.py through ticket_service.execute to the changed create_ticket database operation. Identify security vulnerabilities and explain the source evidence. Do not edit files.
 ```
 
-If your workspace root is starter, use review_examples/sql_injection_demo.py in the review command instead. Confirm the report covers this file before scoring. If it reviews only documentation or reports an empty branch diff, the example has not been reviewed.
+If the workspace root is starter, remove starter/ from the paths in the command. If the built-in step fails on origin/HEAD, use the recovery instructions below and retry.
+6. **Verify and record.** Look for CWE-89 and the f-string inserting title into the query. The report should connect the browser's Request summary field to this SQL operation. Authentication does not make a user's title safe SQL. Save the finding and cited lines, or record a miss if the changed code was covered without the issue being reported.
+7. **Restore the supplied implementation.** Replace the entire create_ticket block you inserted with the original two-line block from step 1. Save. Run git diff -- tickets/local_adapter.py again from starter and check that the exercise edit is gone. Create another ordinary ticket to confirm normal behavior. This restores the supplied code after the demonstration; students are not asked to design a repair.
 
-3. **Verify the finding in VS Code.** Look for CWE-89, SQL Injection. Compare the f-string query with the INSERT statement: the INSERT uses a placeholder and a separate value, while the SELECT inserts title into the SQL text. Claude should explain why that difference matters. Record its finding or a miss if it reviewed the file without identifying the issue.
-4. **Save the evidence and clear the intent-to-add entry.** Run `git reset -- review_examples/sql_injection_demo.py` from starter after saving the report. The file remains on disk and returns to being ignored.  Copy Claude's finding and the vulnerable query into your report. Explain the weakness in one sentence. Keep this result separate from the original importer/downloader comparison. Students identify and verify the issue without running it or implementing a repair.
+**Turn in:** Claude's review, the vulnerable query, and one sentence tracing Request summary to the database. Keep this live-code result separate from the earlier screenshots of isolated teaching examples and from the importer/downloader comparison.
 
 ## If /security-review reports unknown revision origin/HEAD
 
@@ -146,10 +151,17 @@ Expect `refs/remotes/origin/main`. If your repository uses another default branc
 **Accounts and licenses:** Claude Code access with available subscription usage or API billing. The plugin uses the model and usage available in your Claude Code session. A managed organization may need to allow plugin installation. This exercise runs through the plugin in your session.
 
 1. **Install the plugin in the Claude Code panel.** In the message box, enter `/plugin install claude-security@claude-plugins-official`, then `/reload-plugins`. If the marketplace is missing, enter `/plugin marketplace add anthropics/claude-plugins-official` and retry installation. If `/claude-security:scan` already appears in the command list, the plugin is installed.
-2. **Request a scoped scan.** In the same panel, enter: “Use the Claude Security plugin to scan starter/review_examples/file_imports.py and starter/review_examples/attachments.py in this Codespaces repository. Treat both as source to review. Identify and verify weaknesses. Save the findings report.” If your workspace root is starter, use review_examples/ as the path instead. The plugin should identify the target and describe the effort and usage cost before starting. Confirm after checking that the two example files are the target.
+2. **Start the plugin scan from the Claude Code panel.** Keep the vulnerable Request summary replacement from Exercise 5 in place until this scan completes. If you restored it, reapply the supplied replacement first. In Codespaces VS Code, open the Claude Code panel and click its message box. Paste this request and submit it:
+
+```text
+Use the Claude Security plugin to review starter/tickets/local_adapter.py for security vulnerabilities and save the report. Do not modify the code.
+```
+
+If the open workspace root is starter, remove starter/ from both paths. The plugin should identify the target files and describe the effort and usage cost. Check that it selected the changed create_ticket query and its request path, then confirm the scan.
+
 3. **Observe the scan.** Watch the stage updates in the Claude Code panel. Wait for the final report path. If the command fails, record the error. A failed run has no findings score.
 4. **Read the generated report.** In the VS Code Explorer, open the new CLAUDE-SECURITY-<timestamp> folder and its CLAUDE-SECURITY-RESULTS.md file. Look for each finding’s source location, severity, confidence, explanation, and recommendation. Check the cited lines in the starter source. Record whether they support the claim.
-5. **Save your comparison.** Add the report path, files covered, model if shown, and confirmed findings, misses and false alarms to your report. Keep this generated report for Exercise 8.
+5. **Save your comparison and restore the code.** Restore the original create_ticket ORM call from Exercise 5 after saving the scan report.  Add the report path, files covered, model if shown, and confirmed findings, misses and false alarms to your report. Keep this generated report for Exercise 8.
 
 [Official Claude Security plugin documentation](https://github.com/anthropics/claude-plugins-official/blob/main/plugins/claude-security/README.md)
 

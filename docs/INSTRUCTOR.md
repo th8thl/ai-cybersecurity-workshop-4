@@ -1,7 +1,7 @@
 # Instructor setup
 
 1. Make https://github.com/th8thl/ai-cybersecurity-workshop-4 a template repository. Students create their own public repository from this template before class and open their Codespace from it. Use that same repository for CodeQL and Claude Security. Scope Claude Security to starter/review_examples and score CodeQL alerts for the two files in that folder.
-2. Verify the Claude Code extension and official Claude Security plugin are available to students. Exercise 5 uses a direct request to review the student-created SQL example; Exercise 6 generates a scan through the plugin in the same VS Code panel. Check available account usage and organization plugin permissions before class. Keep the source scope on the two starter/review_examples files for the comparison.
+2. Verify the Claude Code extension and official Claude Security plugin are available to students. Exercise 5 uses /security-review on a temporary SQL injection change to starter/tickets/local_adapter.py; Exercise 6 generates a scan through the plugin in the same VS Code panel. Check available account usage and organization plugin permissions before class. Keep the source scope on the two starter/review_examples files for the comparison.
 3. Reveal the solution scoring key after students record their initial verdicts. Compare the reviewed examples with the repaired implementations and run the file-operation tests.
 4. For discussion, use the misleading repository excerpt from Exercise 9 and have students contrast it with a contaminated benchmark or a model with unknown training/fine-tuning provenance.
 
@@ -21,3 +21,5 @@ review_examples/attachments.py.
 - [Claude Code /security-review](https://support.anthropic.com/en/articles/11932705-automated-security-reviews-in-claude-code/)
 - [Claude Security](https://www.anthropic.com/research/glasswing-initial-update)
 
+
+Exercise 5 now modifies the active create_ticket operation and restores the original ORM call afterward. Existing screenshots show earlier reviews of isolated classroom files; their no-findings results do not predict the live-code review.

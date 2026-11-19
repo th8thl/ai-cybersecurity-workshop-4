@@ -1,0 +1,185 @@
+{
+  "$schema": "https://docs.oasis-open.org/sarif/sarif/v2.1.0/errata01/os/schemas/sarif-schema-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Claude Security Plugin for Claude Code",
+          "organization": "Anthropic",
+          "informationUri": "https://claude.com/product/claude-security",
+          "version": "0.12.0",
+          "rules": [
+            {
+              "id": "CWE-89",
+              "name": "SQLInjection",
+              "shortDescription": {
+                "text": "SQL Injection"
+              },
+              "fullDescription": {
+                "text": "Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection') (CWE-89, CWE 4.20): findings whose CWE is this entry of the Simplified Mapping view or rolls up to it, reported by Claude Security Plugin for Claude Code from static review of the source."
+              },
+              "help": {
+                "text": "Each alert's message names the finding's own CWE and states the impact, exploit scenario, preconditions and recommended fix; the finding appears under its F<n> id in CLAUDE-SECURITY-RESULTS.md."
+              },
+              "helpUri": "https://cwe.mitre.org/data/definitions/89.html",
+              "properties": {
+                "tags": [
+                  "security",
+                  "external/cwe/cwe-89"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "automationDetails": {
+        "id": "claude-security-plugin/scan/starter/tickets/local_adapter.py/8ac6266d-4ba1-4afa-a2ed-b215e3f19ecb",
+        "guid": "8ac6266d-4ba1-4afa-a2ed-b215e3f19ecb"
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true
+        }
+      ],
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "description": {
+            "text": "The top level of the scanned repository, or the scanned directory when the scan did not run inside a git checkout."
+          }
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CWE-89",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "SQL injection in create_ticket: user-supplied ticket title is put into a raw INSERT with an f-string.\n\nThe ticket title comes from the user through the web form (tickets/views.py ticket_create and ticket_import), the MCP create_ticket tool or the chatbot. It is placed between single quotes in a raw SQL string with an f-string at line 15 and run at line 18. Only owner_id is bound as a parameter. validate_proposal only enforces a string of 1-120 characters with at least one non-space character, so quotes and SQL syntax get through.\n\nImpact: Any authenticated user can read the whole database: password hashes, Django session keys (enabling session hijack of admins), and other users' tickets and knowledge data. They can also insert ticket rows owned by other users with any status, which breaks per-user data integrity.\n\nExploit scenario: A logged-in user sends POST /tickets/new/ with title = x'||(SELECT session_key FROM django_session LIMIT 1)||' (or SELECT password FROM auth_user WHERE is_superuser=1). The query becomes VALUES (?, 'x'||(SELECT ...)||'', 'open'). SQLite runs the subquery and stores its result in the attacker's own ticket title, which dispatch returns and the ticket detail page shows. Changing LIMIT/OFFSET reads other rows one at a time, which can expose active admin session keys and lead to account takeover. A payload like a','open'),(1,'pwn adds extra rows owned by any user ID with any status. sqlite3 refuses stacked statements, but subqueries and extra VALUES rows work inside the single INSERT.\n\nPreconditions: Attacker has a valid low-privilege account (no self-registration route exists; accounts/ is login only), or can reach the MCP create_ticket tool or the chatbot, which forward the title into the same path; Payload must fit in the 120-character title limit, and the example payloads do.\n\nRecommendation: Restore the ORM call (Ticket.objects.create(owner=actor, title=arguments[\"title\"])), or pass title as a bound parameter: cursor.execute(\"INSERT INTO tickets_ticket (owner_id, title, status) VALUES (%s, %s, 'open')\", [actor.pk, title]). Never build SQL with f-strings or string concatenation from request data.\n\nCWE-89. Severity HIGH, confidence high."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "starter/tickets/local_adapter.py",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 18,
+                  "snippet": {
+                    "text": "            cursor.execute(query, [actor.pk])"
+                  }
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "dispatch",
+                  "fullyQualifiedName": "dispatch"
+                }
+              ]
+            }
+          ],
+          "properties": {
+            "claudeSecurityPlugin": {
+              "id": "F1",
+              "title": "SQL injection in create_ticket: user-supplied ticket title is put into a raw INSERT with an f-string",
+              "impact": "Any authenticated user can read the whole database: password hashes, Django session keys (enabling session hijack of admins), and other users' tickets and knowledge data. They can also insert ticket rows owned by other users with any status, which breaks per-user data integrity.",
+              "file": "starter/tickets/local_adapter.py",
+              "line": 18,
+              "description": "The ticket title comes from the user through the web form (tickets/views.py ticket_create and ticket_import), the MCP create_ticket tool or the chatbot. It is placed between single quotes in a raw SQL string with an f-string at line 15 and run at line 18. Only owner_id is bound as a parameter. validate_proposal only enforces a string of 1-120 characters with at least one non-space character, so quotes and SQL syntax get through.",
+              "exploit_scenario": "A logged-in user sends POST /tickets/new/ with title = x'||(SELECT session_key FROM django_session LIMIT 1)||' (or SELECT password FROM auth_user WHERE is_superuser=1). The query becomes VALUES (?, 'x'||(SELECT ...)||'', 'open'). SQLite runs the subquery and stores its result in the attacker's own ticket title, which dispatch returns and the ticket detail page shows. Changing LIMIT/OFFSET reads other rows one at a time, which can expose active admin session keys and lead to account takeover. A payload like a','open'),(1,'pwn adds extra rows owned by any user ID with any status. sqlite3 refuses stacked statements, but subqueries and extra VALUES rows work inside the single INSERT.",
+              "preconditions": [
+                "Attacker has a valid low-privilege account (no self-registration route exists; accounts/ is login only), or can reach the MCP create_ticket tool or the chatbot, which forward the title into the same path",
+                "Payload must fit in the 120-character title limit, and the example payloads do"
+              ],
+              "category": "SQL Injection",
+              "severity": "HIGH",
+              "confidence": "high",
+              "recommendation": "Restore the ORM call (Ticket.objects.create(owner=actor, title=arguments[\"title\"])), or pass title as a bound parameter: cursor.execute(\"INSERT INTO tickets_ticket (owner_id, title, status) VALUES (%s, %s, 'open')\", [actor.pk, title]). Never build SQL with f-strings or string concatenation from request data.",
+              "cwe_id": "CWE-89",
+              "snippet": "            cursor.execute(query, [actor.pk])",
+              "symbol": "dispatch",
+              "declared_line": 18,
+              "via_change": null,
+              "other_cwe_ids": [],
+              "claudeSecurityPluginFindingId": "v3:8efb6490890d4d4b4908d3a9fbe6b869dd8cca074bc9d012c0f5b8cb40161b4a",
+              "verification": {
+                "panel": {
+                  "true": 3,
+                  "false": 0,
+                  "voters": 3
+                }
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "claudeSecurityPlugin": {
+          "generated_at": "2026-11-19T03:33:38+00:00",
+          "scan_id": "8ac6266d-4ba1-4afa-a2ed-b215e3f19ecb",
+          "mode": "scan",
+          "scan_prefix": "",
+          "scope": [
+            "starter/tickets/local_adapter.py"
+          ],
+          "revision": {
+            "versioned": true,
+            "commit": "5bc04aa27b9a434970c5c76aa90b98c0d2902cc5",
+            "branch": "main",
+            "dirty": true
+          },
+          "revision_source": "self-reported",
+          "effort": "medium",
+          "run_shape": {
+            "requested_effort": "medium",
+            "collapsed": "small-scope",
+            "source": "coverage.json",
+            "diff_files": null,
+            "diff_lines": null,
+            "pre_existing": 0,
+            "scope_files": 1,
+            "empty_diff": false,
+            "empty_scope": false,
+            "researchers_dispatched": 1,
+            "skipped_components": [],
+            "completeness_check_outcome": "not-applicable",
+            "unaccounted_top_level_dirs": [],
+            "inventory_fallback": null,
+            "top_level_dir_count": null,
+            "target_files": 1,
+            "component_cap": null,
+            "research_coverage": null
+          },
+          "findings": {
+            "total": 1,
+            "critical": 0,
+            "high": 1,
+            "medium": 0,
+            "low": 0
+          },
+          "verification": {
+            "status": "verified",
+            "candidates": 1,
+            "candidates_deduped": 1,
+            "panel_votes": 3,
+            "panel_reviewed_findings": 1,
+            "panel_quorum_findings": 1,
+            "unreviewed_candidate_sites": 0,
+            "incomplete_panel_candidates": 0,
+            "attested_findings": 0,
+            "reason": null,
+            "researchers_dispatched": 1,
+            "researchers_returned": 1
+          },
+          "target_kind": "git-remote"
+        }
+      },
+      "versionControlProvenance": [
+        {
+          "repositoryUri": "https://github.com/th8thl/ai-cybersecurity-workshop-4"
+        }
+      ]
+    }
+  ]
+}

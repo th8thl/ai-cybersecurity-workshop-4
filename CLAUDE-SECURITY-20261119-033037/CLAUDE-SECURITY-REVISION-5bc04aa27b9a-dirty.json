@@ -1,0 +1,63 @@
+{
+  "generated_at": "2026-11-19T03:33:38+00:00",
+  "duration_s": 171,
+  "scan_id": "8ac6266d-4ba1-4afa-a2ed-b215e3f19ecb",
+  "mode": "scan",
+  "scan_prefix": "",
+  "scope": [
+    "starter/tickets/local_adapter.py"
+  ],
+  "revision": {
+    "versioned": true,
+    "commit": "5bc04aa27b9a434970c5c76aa90b98c0d2902cc5",
+    "branch": "main",
+    "dirty": true
+  },
+  "revision_source": "self-reported",
+  "model": null,
+  "effort": "medium",
+  "run_shape": {
+    "requested_effort": "medium",
+    "collapsed": "small-scope",
+    "source": "coverage.json",
+    "diff_files": null,
+    "diff_lines": null,
+    "pre_existing": 0,
+    "scope_files": 1,
+    "empty_diff": false,
+    "empty_scope": false,
+    "researchers_dispatched": 1,
+    "verification_runs": 1,
+    "skipped_components": [],
+    "pruned_buckets": [],
+    "completeness_check_outcome": "not-applicable",
+    "unaccounted_top_level_dirs": [],
+    "inventory_fallback": null,
+    "top_level_dir_count": null,
+    "target_files": 1,
+    "component_cap": null,
+    "research_coverage": null
+  },
+  "findings": {
+    "total": 1,
+    "critical": 0,
+    "high": 1,
+    "medium": 0,
+    "low": 0
+  },
+  "verification": {
+    "status": "verified",
+    "candidates": 1,
+    "candidates_deduped": 1,
+    "panel_votes": 3,
+    "panel_reviewed_findings": 1,
+    "panel_quorum_findings": 1,
+    "unreviewed_candidate_sites": 0,
+    "incomplete_panel_candidates": 0,
+    "attested_findings": 0,
+    "reason": null,
+    "reason_kind": null,
+    "researchers_dispatched": 1,
+    "researchers_returned": 1
+  }
+}
